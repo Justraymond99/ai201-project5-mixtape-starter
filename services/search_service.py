@@ -5,7 +5,7 @@ Handles song search logic.
 """
 
 from app import db
-from models import Song, Tag, song_tags
+from models import Song, song_tags
 
 
 def search_songs(query: str) -> list[dict]:
@@ -31,6 +31,7 @@ def search_songs(query: str) -> list[dict]:
                 Song.artist.ilike(f"%{query}%"),
             )
         )
+        .distinct()
         .all()
     )
 
