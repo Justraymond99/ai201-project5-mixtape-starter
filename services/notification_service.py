@@ -42,7 +42,6 @@ def add_to_playlist(playlist_id: str, song_id: str, added_by_user_id: str) -> No
         added_by_user_id: The ID of the user who added the song.
     """
     from models import Playlist
-    from services.playlist_service import get_playlist_songs
 
     song = db.session.get(Song, song_id)
     if not song:
@@ -72,7 +71,7 @@ def add_to_playlist(playlist_id: str, song_id: str, added_by_user_id: str) -> No
 
 def rate_song(user_id: str, song_id: str, score: int) -> Rating:
     """
-    Save a user's rating for a song.
+    Save a user's rating for a song and notify its original sharer.
 
     Args:
         user_id: The ID of the user submitting the rating.
@@ -107,11 +106,13 @@ def rate_song(user_id: str, song_id: str, score: int) -> Rating:
 
     db.session.commit()
 
+    # Match the working playlist-add flow: notify the original sharer when
+    # another user interacts with their song.
     if song.shared_by != user_id:
         create_notification(
             user_id=song.shared_by,
             notification_type="song_rated",
-            body=f"{rater.username} rated your song '{song.title}' {score}/5.",
+            body=f"{rater.username} rated your song '{song.title}' {score} stars.",
         )
 
     return rating
